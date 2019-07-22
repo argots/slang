@@ -1,0 +1,2 @@
+# slang
+Simple Language
