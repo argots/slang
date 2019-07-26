@@ -1,5 +1,96 @@
 # Slang
 
+Slang is a simple declarative meta-programming language for data and code.
+
+A core principle of slang is allow intent to declared declaratively and to separate representation, validations (such as type checks), performance and other choices from the intent.
+
+## Readability first
+
+### Markdown
+
+Slang starts with [Markdown](https://en.wikipedia.org/wiki/Markdown) as the container.  Actual code snippets are embedded with code-fences:
+
+```
+  This is a *slang*  hello world program.
+  
+  ## Hello World
+  ```slang
+     'hello world'
+  `` `
+  
+```
+
+### Syntactic simplicity
+
+Slang treats single-quotes, double-quotes and back-quotes the same.  Square brackets, curly brackets and paranthesis are the same.
+
+Slang has very limited syntax: things that would require a special syntax in other languages  are just function calls in slang:
+
+Consider the following JS snippet:
+
+```js
+function averagePositive(items) {
+  let result = 0;
+  let count = 0;
+  for(let val in items) {
+    if (val > 0) {
+      result += val;
+      count ++;
+    }
+  }
+  return result/count;
+}
+
+```
+
+The equivalent version in slang would be like so:
+
+```
+Object(
+  AveragePositive(items): div(reduce(filter(items, it > 0), initial, sum)),
+  where(
+     initial = Pair(Total: 0, Count: 0),
+     div(pair) = pair.Total/pair.Count,
+     sum(it) = Pair(Total: it.last.Total + it.current, Count: it.last.Count + 1)
+  )
+)
+```
+
+The `where` function is the way to declare local scopes (which can be declared before or 
+after the actual term is used).  Similarly, `if()` is a function as well rather than a 
+syntactic term.
+
+This choice may seem counter to better readability through keywords and special syntactic 
+forms but having a large syntax has a high onboarding cost as well as a higher cost for 
+parsers and readability tools.
+
+
+### Inline DSLs
+
+Slang offers a special form for embedding XML or Math or even documentation: any identifier 
+followed by a quoted string (without an operator inbetween) would be considered a language
+DSL and the corresponding extension invoked:
+
+```
+  do(
+    RootComponent = jsx "
+       <MyReactJSXCode>
+        ....
+       </MyReactJSXCode>
+    ",
+    where(
+       React = import("react"),
+       ...
+    )
+  )
+```
+
+The actual parsing of evertying past the quote is to be handled by the `jsx` extension in 
+this case which is expected to emit valid slang code (and so can refer names declared in
+the where clause)
+
+
+In 
 Slang is a very simple language. The core language can be thought of a data serialization format or a config or an actual program.
 
 ## Value types
