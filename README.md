@@ -2,22 +2,38 @@
 
 Slang is a simple declarative meta-programming language for data and code.
 
-A core principle of slang is allow intent to declared declaratively and to separate representation, validations (such as type checks), performance and other choices from the intent.
+A core principle of slang is allow intent to be declared
+and to separate representation, validations (such as type checks),
+performance and other  choices from the intent.
 
 ## Example
 
-The following example charts a table:
+The following example renders a chart of a table:
 
 ```slang
 Chart(series: Series(data), type: 'BarChart')
   .where(
-     data: table.group(group(it)).map(size(it)),
+     table: Customers(
+       Customer("John", 42, "July 23"),
+       Customer("Doe", 22, "Jan 4")
+     ),
+     data: table.group(group(it.Start)).map(size(it)),
      group(x): math '⌊x / bucket ⌋ * bucket',
      bucket: time '1 second',
   )
   .rewrite(
     note 'Chart is actually [ZChartV2_3](zchart.com), so do the renaming here'
-    Any / Chart: "ZChartV2_3
+    Chart: "ZChartV2_3",
+
+    note 'Customers is just a table but using a more memorable name'
+    Chart / Any / Customers: "Table",
+
+    note 'Replace Customer with named Row'
+    Customers / Customer(name, dept, date): Row(
+      Name: name,
+      Dept: dept, 
+      Start: strToDate(date)
+    )
   )
 ```
 
