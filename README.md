@@ -1,5 +1,7 @@
 # Slang
 
+![Test](https://github.com/argots/slang/workflows/Test/badge.svg)
+
 Slang is a simple declarative meta-programming language for data and code.
 
 ## Goals
