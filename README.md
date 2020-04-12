@@ -2,115 +2,57 @@
 
 Slang is a simple declarative meta-programming language for data and code.
 
-A core principle of slang is allow intent to be declared
-and to separate representation, validations (such as type checks),
-performance and other  choices from the intent.
+## Goals
 
-## Example
+- A clean human-readable simple syntax that can represent data as well
+as code. 
+- Type checks and performance optimizations are layered on top of the
+fixed syntax instead of requiring additional syntax.
+- A canonical format (so all code/data can be formatted cleanly).
+- Ability to transform cleanly from/to JSON.
+- Ability to represent patches of the syntax within the syntax itself
+(meta programming).
 
-The following example renders a chart of a table:
+## Specifics
 
-```slang
-Chart(series: Series(data), type: 'BarChart')
-  .where(
-     table: Customers(
-       Customer("John", 42, "July 23"),
-       Customer("Doe", 22, "Jan 4")
-     ),
-     data: table.group(group(it.Start)).map(size(it)),
-     group(x): math '⌊x / bucket ⌋ * bucket',
-     bucket: time '1 second',
-  )
-  .rewrite(
-    note 'Chart is actually [ZChartV2_3](zchart.com), so do the renaming here'
-    Chart: "ZChartV2_3",
+The language is an expresion-based language: there are no statements.
 
-    note 'Customers is just a table but using a more memorable name'
-    Chart / Any / Customers: "Table",
+The **literals** in the langauge are strings and numbers.  Strings can
+use single quotes, double quotes, backquotes or any unicode quote
+character  and can all be multiline.
 
-    note 'Replace Customer with named Row'
-    Customers / Customer(name, dept, date): Row(
-      Name: name,
-      Dept: dept, 
-      Start: strToDate(date)
-    )
-  )
-```
+Identifiers are letters (including unicode) followed by any letter +
+number combinations. Identifiers can include quoted strings if no
+space separates the identifier and the quoted string.  This allows
+arbitrary characters in identifiers.
 
-### Markdown
+Expressions can use standard binary arithmetic operators: `+, -, *,
+/`.  Minus can also be used as a unary prefix operator.
 
-Slang starts with [Markdown](https://en.wikipedia.org/wiki/Markdown)
-as the container for code.  This whole markdown file, for example, is
-a valid slang program -- the example above is actually picked up
-because it is in a code fence (tagged `slang`)
+Logical operations are expressed with `&` and `|`.  The unary prefix
+operator is absent and a function `not` is used instead.
 
-In addition, slang allows custom DSLs inline.  The `note '....'`
-line is an example of inline markdown documentation
+Inequality and equality are expressed with `<, >, =, <=, >=, !=`
 
-### Syntactic simplicity
+Expressions can be grouped with paranetheses `()`.
 
-Slang treats single-quotes, double-quotes and back-quotes the same.
-Square brackets, curly brackets and paranthesis are the same.
+The standard set of collections can be ordered (sequences) or
+unordered (sets).  Ordered collections use `[a, b, c]` syntax while
+unordered collections use the `{a, b, c}` syntax.
 
-Slang has very limited syntax: things that would require a special
-syntax in other languages are just function calls.  The `where`
-function in the example is an example: it defines names used on the
-first line.  
+Collections can have an identifier before them: `hello[ a, b, c]` or
+`hello{a, b, c}`.  When used in the context of data, this represents a
+named collection (with the name `hello`).  When used in the context of
+code, this represents a function call.  There is no explicit function
+calls using the `f(x)` syntax.
 
-Similarly, `if(condition, then, else)` is function.
+Tuples are a special composite type: `a:b` represents a pair.  `a:b:c`
+is allowed. The meaning of tuple is context dependent. Within
+collections, they can represent a key for the collection entry.  So,
+`map{x: 5, y: 20}` can be used to specify a map data type. Within
+function calls, they can represent named parameters: `lineTo{x: 5, y:
+10}`.  They can also just represent tuples as such.
 
-### Functional
+Note `map{[1, 2]: 42}` is syntactically valid but may be invalid
+depending on the context.
 
-Slang works with immutable data and functions for control structures.
-The `where` function allows declaring variables used in the previous
-expression (the scope is limited to this).  In addition, even creating
-functions uses the simplified syntax (see `group(x): ...`).
-
-Inline functions in slang are common.  `.group` and `.map` both expect
-this. This is implemented by a dynamically scoped variable `it`. Any
-expression within the function which uses this will automatically be
-treated as a function.
-
-Note that the following wont work: `table.map(z).where(z: it.field)`
-
-Slang also allows chaining in cases where the dot notation won't work:
-`delta.then(base - it)`.  The `then()` call simply pass its receiver
-to the function expression via `it`.
-
-### Inline DSLs
-
-Special syntax can be added to Slang relatively easily (say, to
-support JSX).  The example shows the use of Math `floor` syntax (via
-`⌊x ⌋`) by invoking the `math` parser.
-
-Any ID followed immediately by a quote is treated as invoking a DSL
-with the actual parsing left to the domain extension.
-
-Inline markdowns (`note`) are implemented using this.
-
-The actual parsing of everthying past the quote is to be handled by the `jsx` extension in 
-this case which is expected to emit valid slang code (and so can refer names declared in
-the where clause)
-
-### Meta programming
-
-Slang provides a built-in mechanism to rewrite parts of the code via
-the `rewrite` function (as shown in the example).  All rewrite calls
-work on the AST of the code and so these are executed first to create
-term tranformations.
-
-The output of rewrite is expected to be a valid slang program.
-
-Similar to `.rewrite`, other functions exist for declaring types or
-suggesting use of mutable types for performance etc.
-
-All of these have a standard way of referring to the parts of the
-code -- by using a path formed out of function names, arg names,
-fields, etc.
-
-### Semantic forking
-
-The ability to rewrite parts of the code allows creating hooks where
-consumers can modify that. This allows thinking of `.rewrite()` as a
-patch - except, it can be semantically connected unlike git patches
-which are connected by line-numbers.
