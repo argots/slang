@@ -18,41 +18,41 @@ fixed syntax instead of requiring additional syntax.
 
 ## Language details
 
-The language is an expresion-based language: there are no statements.
+The language is an expression-based language: there are no statements.
 
 ### Literals
 
-The basic literals in the langauge are strings and numbers.  Strings
-can use single quotes, double quotes, backquotes or any unicode quote
+The basic literals in the language are strings and numbers.  Strings
+can use single quotes, double quotes, back quotes or any Unicode quote
 character (though the closing character must match the opening)  and
-can all be multiline. There is no escape sequence avialable but these
+can all be multi-line. There is no escape sequence available but these
 can be provided with functions.
 
 ### Identifiers
 
-Identifiers are letters (including unicode) followed by any letter +
+Identifiers are letters (including Unicode) followed by any letter +
 number combinations. Identifiers can include quoted strings if no
 space separates the identifier and the quoted string.  This allows
 arbitrary characters in identifiers. For example, `x"The vector's
 average"` is a valid identifier.
 
-### Operatars
+### Operators
 
 | Operators      | Description                                      |
 | -------------- | ------------------------------------------------ |
 | + - * /        | Standard arithmetic. Minus is also unary prefix. |
 | = != < > <= >= | Equality, inequality operators.                  |
-| & |            | Logical opertors. `not` is a function            |
+| & \|           | Logical operators. `not` is a function           |
 | ()             | Grouping.  Not used for functions                |
 | [] {}          | Ordered sequences or Unordered sets              |
 | :              | Tuple operator                                   |
 | ,              | Comma separator for sequences and sets           |
-|----------------|--------------------------------------------------|
+
 
 ### Sequences, sets and function calls
 
 The meaning of sequences, sets and tuples depend on the context of
-their usage.  The context is outside the scope of the AST defintion.
+their usage.  The context is outside the scope of the AST definition.
 
 Sequences and sets can have an identifier before them: `hello[ a, b,
 c]` or `hello{a, b, c}`.  When used in the context of data, this
