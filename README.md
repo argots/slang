@@ -18,7 +18,7 @@ fixed syntax instead of requiring additional syntax.
 
 ## Language details
 
-The language is an expression-based language: there are no statements.
+Slang is an expression-based language: there are no statements.
 
 ### Literals
 

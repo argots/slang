@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// SourceReader implements the abiltiy to read source code.
+// SourceReader implements an Reader for source code.
 type SourceReader interface {
 	ReadSource(location string) io.ReadCloser
 }
@@ -25,6 +25,7 @@ type Sources struct {
 	cache   map[string][]byte
 }
 
+// ReadSource returns an io.Reader for the source contents.
 func (s *Sources) ReadSource(location string) io.ReadCloser {
 	if fn, ok := s.readers[location]; ok {
 		return fn()
@@ -32,6 +33,7 @@ func (s *Sources) ReadSource(location string) io.ReadCloser {
 	return nil
 }
 
+// AddStringSource adds the string contents as a source.
 func (s *Sources) AddStringSource(location, source string) {
 	s.init()
 	s.readers[location] = func() io.ReadCloser {
@@ -39,6 +41,7 @@ func (s *Sources) AddStringSource(location, source string) {
 	}
 }
 
+// AddFileSource adds the file contents as a source.
 func (s *Sources) AddFileSource(location, filePath string) {
 	s.init()
 	// should this be cached?
@@ -51,7 +54,11 @@ func (s *Sources) AddFileSource(location, filePath string) {
 	}
 }
 
-func (s *Sources) AddPublicUrlSource(location, url string) {
+// AddPublicURLSource adds the URL contents as a source.
+//
+// If the Client field of Sources is non-nil, that is used. If not, a
+// custom client is used with timeouts filled in.
+func (s *Sources) AddPublicURLSource(location, url string) {
 	s.init()
 	s.readers[location] = s.cacheGet(location, func() ([]byte, error) {
 		resp, err := s.client().Get(url)
@@ -83,7 +90,6 @@ func (s *Sources) client() *http.Client {
 
 func (s *Sources) cacheGet(location string, fn func() ([]byte, error)) func() io.ReadCloser {
 	return func() io.ReadCloser {
-		// TODO: implement cache limtis, LRU eviction etc
 		cached, ok := s.cache[location]
 		var err error
 		if !ok {
@@ -97,11 +103,12 @@ func (s *Sources) cacheGet(location string, fn func() ([]byte, error)) func() io
 	}
 }
 
+//nolint: gochecknoglobals, gomnd
 var httpClient = &http.Client{
 	Transport: &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout:   time.Minute / 2,
+			KeepAlive: time.Minute / 2,
 		}).Dial,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 10 * time.Second,
