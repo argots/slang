@@ -60,9 +60,9 @@ func TestSourcesMissingFile(t *testing.T) {
 	}
 }
 
-func TestSourcesUrl(t *testing.T) {
+func TestSourcesURL(t *testing.T) {
 	s := ast.Sources{}
-	s.AddPublicUrlSource("robots.txt", "https://www.google.com/robots.txt")
+	s.AddPublicURLSource("robots.txt", "https://www.google.com/robots.txt")
 	data, err := readAll(s.ReadSource("robots.txt"))
 	if err != nil || !strings.Contains(string(data), "Disallow") {
 		t.Fatal("Unexpected source", string(data), err)
@@ -73,15 +73,15 @@ func TestSourcesUrl(t *testing.T) {
 	}
 }
 
-func TestSourcesInvalidUrl(t *testing.T) {
+func TestSourcesInvalidURL(t *testing.T) {
 	s := ast.Sources{}
-	s.AddPublicUrlSource("invalid_url1", "https://wwwxx.google.com/invalid_url")
+	s.AddPublicURLSource("invalid_url1", "https://wwwxx.google.com/invalid_url")
 	data, err := readAll(s.ReadSource("invalid_url1"))
 	if err == nil || len(data) != 0 {
 		t.Fatal("Unexpected source", string(data), err)
 	}
 
-	s.AddPublicUrlSource("invalid_url2", "https://www.google.com/invalid_url")
+	s.AddPublicURLSource("invalid_url2", "https://www.google.com/invalid_url")
 	data, err = readAll(s.ReadSource("invalid_url2"))
 	if err == nil || len(data) != 0 {
 		t.Fatal("Unexpected source", string(data), err)
@@ -95,7 +95,7 @@ func TestSourcesCustomHTTPClient(t *testing.T) {
 	s.Client.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return nil, err
 	})
-	s.AddPublicUrlSource("robots.txt", "https://www.google.com/robots.txt")
+	s.AddPublicURLSource("robots.txt", "https://www.google.com/robots.txt")
 	data, err2 := readAll(s.ReadSource("robots.txt"))
 	if err2 == nil || !strings.Contains(err2.Error(), err.Error()) || len(data) != 0 {
 		t.Fatal("Unexpected source", string(data), err2)

@@ -37,6 +37,7 @@ type LocMap interface {
 	Add(location string, start, end uint32) (handle Loc)
 }
 
+// NewLocMap returns a simple loc map implementation.
 func NewLocMap() LocMap {
 	return &locMap{entriesMap: map[locEntry]Loc{}}
 }
