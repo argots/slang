@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -22,6 +23,13 @@ type Sources struct {
 	*http.Client
 	readers map[string]func() io.ReadCloser
 	cache   map[string][]byte
+}
+
+func (s *Sources) ReadSource(location string) io.ReadCloser {
+	if fn, ok := s.readers[location]; ok {
+		return fn()
+	}
+	return nil
 }
 
 func (s *Sources) AddStringSource(location, source string) {
@@ -51,6 +59,10 @@ func (s *Sources) AddPublicUrlSource(location, url string) {
 			return nil, err
 		}
 		defer resp.Body.Close()
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return nil, fmt.Errorf("http.Get failed: %v", resp.StatusCode)
+		}
+
 		return ioutil.ReadAll(resp.Body)
 	})
 }
@@ -73,8 +85,9 @@ func (s *Sources) cacheGet(location string, fn func() ([]byte, error)) func() io
 	return func() io.ReadCloser {
 		// TODO: implement cache limtis, LRU eviction etc
 		cached, ok := s.cache[location]
+		var err error
 		if !ok {
-			cached, err := fn()
+			cached, err = fn()
 			if err != nil {
 				return errReader{err}
 			}
