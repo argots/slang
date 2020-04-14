@@ -7,7 +7,7 @@ import (
 	"github.com/argots/slang/pkg/ast"
 )
 
-func TestParseAndFormat(t *testing.T) {
+func TestParseAndFormat(t *testing.T) { //nolint: funlen
 	tests := [][]string{
 		{"1"},
 		{"1.5"},
@@ -19,10 +19,16 @@ func TestParseAndFormat(t *testing.T) {
 		{"x"},
 		{"x123"},
 		{"x'a b'"},
+		{"-x", "- x"},
 		{"x + y"},
+		{"(x < y) | (x > y)", "x < y | x > y"},
+		{"(x <= y) & (x >= y)", "x <= y & x >= y"},
+		{"(x = y) | (x != y)", "x = y | x != y"},
 		{"x + y + z"},
 		{"x + (y + z)", "x + (y + z)"},
 		{"(x + y) - z", "x + y - z"},
+		{"x + -5", "x + - 5"},
+		{"x ---5", "x - - - 5"},
 		{"x - y - z"},
 		{"x - ( y - z )", "x - (y - z)"},
 		{"x + y * 5"},
@@ -41,6 +47,8 @@ func TestParseAndFormat(t *testing.T) {
 		{"(x + y)[5, 2]", "(x + y)[5, 2]"},
 		{"x + (f[23])", "x + f[23]"},
 		{"x + [23, 24]", "x + [23, 24]"},
+		{"{}"},
+		{"map{[1, 2]: 42}"},
 	}
 
 	run := func(test []string) func(t *testing.T) {

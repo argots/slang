@@ -25,8 +25,6 @@ func priority(op string) int {
 		return 900
 	case "*", "/":
 		return 1000
-	case "!":
-		return 1100
 	case "{", "}", "[", "]":
 		return 1200
 	case ".":
@@ -38,4 +36,8 @@ func priority(op string) int {
 
 func isRightAssoc(op string) bool {
 	return op == ":"
+}
+
+func isUnary(op string) bool {
+	return op == "-"
 }
