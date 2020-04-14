@@ -10,8 +10,8 @@ import (
 func Parse(r io.Reader, location string, lm LocMap) (Node, error) {
 	t := tokenizer{Reader: r, Location: location, LocMap: lm}
 	p := parser{tokenizer: t}
-	n, _, err := p.parse("")
-	return n, err
+	n, _, err := p.parse("", false)
+	return p.stripParen(n), err
 }
 
 type parser struct {
@@ -21,7 +21,7 @@ type parser struct {
 	terms       []Node
 }
 
-func (p *parser) parse(end string) (Node, Loc, error) {
+func (p *parser) parse(end string, allowEmpty bool) (Node, Loc, error) {
 	for {
 		tok, err := p.Next()
 		switch {
@@ -31,15 +31,14 @@ func (p *parser) parse(end string) (Node, Loc, error) {
 			return nil, Loc(0), io.ErrUnexpectedEOF
 		case err != nil:
 		case tok.Kind == operatorToken && tok.Value == end:
-			return p.finish(tok.Loc, tok.Value != ")")
-		case tok.Kind == operatorToken && tok.Value == "(":
-			err = p.handleParen()
-		case tok.Kind == operatorToken && (tok.Value == "[" || tok.Value == "{"):
-			err = p.handleSetOrSeq(tok)
+			return p.finish(tok.Loc, allowEmpty)
 		case tok.Kind == operatorToken:
-			if tok.Value == ")" || tok.Value == "]" || tok.Value == "}" {
+			switch tok.Value {
+			case "(", "[", "{":
+				err = p.handleSetSeqOrParen(tok)
+			case ")", "]", "}":
 				err = errors.New("unexpected close")
-			} else {
+			default:
 				err = p.handleOp(tok)
 			}
 		case tok.Kind == numberToken:
@@ -87,21 +86,10 @@ func (p *parser) handleOp(tok *token) error {
 	return nil
 }
 
-func (p *parser) handleParen() error {
-	p2 := parser{tokenizer: p.tokenizer}
-	n, _, err := p2.parse(")")
-	if err != nil {
-		return err
-	}
-	p.tokenizer = p2.tokenizer
-	return p.handleTerm(n)
-}
+func (p *parser) handleSetSeqOrParen(tok *token) error {
+	close := p.closeToken(tok.Value)
+	allowEmpty := p.lastWasTerm || tok.Value != "("
 
-func (p *parser) handleSetOrSeq(tok *token) error {
-	close := "]"
-	if tok.Value == "{" {
-		close = "}"
-	}
 	var x Node
 	var l Loc
 	if p.lastWasTerm {
@@ -114,16 +102,21 @@ func (p *parser) handleSetOrSeq(tok *token) error {
 	}
 
 	p2 := parser{tokenizer: p.tokenizer}
-	y, l, err := p2.parse(close)
+	y, l, err := p2.parse(close, allowEmpty)
 	if err != nil {
 		return err
 	}
 	p.tokenizer = p2.tokenizer
 
-	if close == "]" {
+	x, y = p.stripParen(x), p.stripParen(y)
+	switch close {
+	case ")":
+		return p.handleTerm(&Paren{tok.Value, close, tok.Loc, l, x, y})
+	case "]":
 		return p.handleTerm(&Seq{tok.Value, close, tok.Loc, l, x, y})
+	default:
+		return p.handleTerm(&Set{tok.Value, close, tok.Loc, l, x, y})
 	}
-	return p.handleTerm(&Set{tok.Value, close, tok.Loc, l, x, y})
 }
 
 func (p *parser) unwindOps(op string) error {
@@ -141,7 +134,7 @@ func (p *parser) unwindOps(op string) error {
 		}
 		x, y := p.terms[len(p.terms)-2], p.terms[len(p.terms)-1]
 		p.terms = p.terms[:len(p.terms)-2]
-		p.terms = append(p.terms, &Expr{Op: tok.Value, Loc: tok.Loc, X: x, Y: y})
+		p.terms = append(p.terms, p.newExpr(tok.Value, tok.Loc, x, y))
 	}
 	return nil
 }
@@ -153,4 +146,29 @@ func (p *parser) handleTerm(n Node) error {
 	p.terms = append(p.terms, n)
 	p.lastWasTerm = true
 	return nil
+}
+
+func (p *parser) newExpr(op string, loc Loc, x, y Node) Node {
+	if op != ":" {
+		x = p.stripParen(x)
+	}
+	return &Expr{Op: op, Loc: loc, X: x, Y: p.stripParen(y)}
+}
+
+func (p *parser) stripParen(n Node) Node {
+	if v, ok := n.(*Paren); ok && v.X == nil {
+		return v.Y
+	}
+	return n
+}
+
+func (p *parser) closeToken(s string) string {
+	switch s {
+	case "(":
+		return ")"
+	case "[":
+		return "]"
+	default:
+		return "}"
+	}
 }

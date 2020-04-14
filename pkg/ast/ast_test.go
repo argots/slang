@@ -49,6 +49,8 @@ func TestParseAndFormat(t *testing.T) { //nolint: funlen
 		{"x + [23, 24]", "x + [23, 24]"},
 		{"{}"},
 		{"map{[1, 2]: 42}"},
+		{"(x): y"},
+		{"((x)): y", "(x): y"},
 	}
 
 	run := func(test []string) func(t *testing.T) {
