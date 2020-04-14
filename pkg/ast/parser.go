@@ -6,8 +6,14 @@ import (
 	"io"
 )
 
-// Parse parses the source and returns the parsed AST
-func Parse(r io.Reader, location string, lm LocMap) (Node, error) {
+// ParseString parses a string and returns an AST.
+func ParseString(s string) (Node, error) {
+	srcs, lm := &Sources{}, NewLocMap()
+	srcs.AddStringSource("string", s)
+	return parse(srcs.ReadSource("string"), "string", lm)
+}
+
+func parse(r io.Reader, location string, lm LocMap) (Node, error) {
 	t := tokenizer{Reader: r, Location: location, LocMap: lm}
 	p := parser{tokenizer: t}
 	n, _, err := p.parse("", false)
