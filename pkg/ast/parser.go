@@ -31,10 +31,10 @@ func (p *parser) parse(end string) (Node, Loc, error) {
 			return nil, Loc(0), io.ErrUnexpectedEOF
 		case err != nil:
 		case tok.Kind == operatorToken && tok.Value == end:
-			return p.finish(tok.Loc, true)
+			return p.finish(tok.Loc, tok.Value != ")")
 		case tok.Kind == operatorToken && tok.Value == "(":
 			err = p.handleParen()
-		case tok.Kind == operatorToken && (tok.Value == "[" || tok.Value == "]"):
+		case tok.Kind == operatorToken && (tok.Value == "[" || tok.Value == "{"):
 			err = p.handleSetOrSeq(tok)
 		case tok.Kind == operatorToken:
 			if tok.Value == ")" || tok.Value == "]" || tok.Value == "}" {
@@ -70,8 +70,12 @@ func (p *parser) finish(l Loc, allowEmpty bool) (Node, Loc, error) {
 }
 
 func (p *parser) handleOp(tok *token) error {
-	if !p.lastWasTerm {
+	if !p.lastWasTerm && !isUnary(tok.Value) {
 		return errors.New("missing term")
+	}
+
+	if !p.lastWasTerm {
+		p.terms = append(p.terms, nil)
 	}
 
 	if err := p.unwindOps(tok.Value); err != nil {

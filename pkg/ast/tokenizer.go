@@ -46,8 +46,11 @@ func (t *tokenizer) Next() (*token, error) {
 			size++
 			return t.readOperator([]rune{r, '='}, size)
 		}
+		if r == '!' {
+			return nil, t.error("unexpected character", r)
+		}
 		fallthrough
-	case '{', ':', ',', '[', ']', '(', ')', '+', '-', '*', '/', '&', '|', '.':
+	case '{', '}', ':', ',', '[', ']', '(', ')', '+', '-', '*', '/', '&', '|', '.', '=':
 		return t.readOperator([]rune{r}, size)
 	default:
 		if !unicode.IsLetter(r) {
@@ -146,7 +149,7 @@ func (t *tokenizer) newToken(kind tokenKind, start int, rs []rune) *token {
 }
 
 func (t *tokenizer) error(reason string, r rune) error {
-	return fmt.Errorf("%s %v", reason, r)
+	return fmt.Errorf("%s %c", reason, r)
 }
 
 func (t *tokenizer) isNextRuneEquals() bool {
