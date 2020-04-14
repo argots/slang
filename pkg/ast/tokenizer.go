@@ -47,7 +47,7 @@ func (t *tokenizer) Next() (*token, error) {
 			return t.readOperator([]rune{r, '='}, size)
 		}
 		fallthrough
-	case '{', ':', ',', '[', ']', '(', ')', '+', '-', '*', '/':
+	case '{', ':', ',', '[', ']', '(', ')', '+', '-', '*', '/', '&', '|', '.':
 		return t.readOperator([]rune{r}, size)
 	default:
 		if !unicode.IsLetter(r) {

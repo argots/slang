@@ -5,7 +5,7 @@ package ast
 //nolint: gomnd
 func priority(op string) int {
 	switch op {
-	case "(", ")", "{", "}", "[", "]":
+	case "(", ")":
 		return 100
 	case ",":
 		return 200
@@ -27,8 +27,10 @@ func priority(op string) int {
 		return 1000
 	case "!":
 		return 1100
-	case ".":
+	case "{", "}", "[", "]":
 		return 1200
+	case ".":
+		return 1300
 	}
 
 	return -1
