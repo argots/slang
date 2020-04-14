@@ -24,28 +24,45 @@ func (f *TextFormatter) Format(w io.Writer, n Node, options *FormatOptions) erro
 		return nil
 	}
 
-	x, ok := n.(*Expr)
-	if !ok {
-		v, _ := n.NodeInfo()
-		_, err := w.Write([]byte(v))
-		return err
-	}
-
 	ew := errWriter{nil, w, f}
 	if options != nil && options.Formatter != nil {
 		ew.f = options.Formatter
 	}
 
+	switch n := n.(type) {
+	case *Expr:
+	case *Set:
+		f.formatSetOrSeq(&ew, options, n.StartOp, n.EndOp, n.X, n.Y)
+		return ew.err
+	case *Seq:
+		f.formatSetOrSeq(&ew, options, n.StartOp, n.EndOp, n.X, n.Y)
+		return ew.err
+	default:
+		v, _ := n.NodeInfo()
+		_, err := w.Write([]byte(v))
+		return err
+	}
+
+	x := n.(*Expr)
 	ew.format(x.X, options, f.needParen(x.Op, x.X, true))
-	if x.X != nil {
+	if x.X != nil && x.Op != "," && x.Op != "." && x.Op != ":" {
 		ew.write(" ")
 	}
 	ew.write(x.Op)
-	if x.Y != nil {
+	if x.Y != nil && x.Op != "." {
 		ew.write(" ")
 	}
 	ew.format(x.Y, options, f.needParen(x.Op, x.Y, false))
 	return ew.err
+}
+
+func (f *TextFormatter) formatSetOrSeq(ew *errWriter, options *FormatOptions, start, end string, x, y Node) {
+	ew.format(x, options, f.needParen(start, x, true))
+	ew.write(start)
+	if ew.err == nil {
+		ew.err = ew.f.Format(ew.w, y, options)
+	}
+	ew.write(end)
 }
 
 func (f *TextFormatter) needParen(op string, n Node, isLeft bool) bool {

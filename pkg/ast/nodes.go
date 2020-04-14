@@ -1,7 +1,7 @@
 package ast
 
 // type assertions
-var _ = []Node{&Expr{}, Number{}, Quote{}, Ident{}}
+var _ = []Node{&Expr{}, Number{}, Quote{}, Ident{}, &Seq{}, &Set{}}
 
 // Node is the main interface implemented by all nodes in the AST
 type Node interface {
@@ -19,6 +19,30 @@ type Expr struct {
 // NodeInfo returns the operator string and the location.
 func (x *Expr) NodeInfo() (value string, loc Loc) {
 	return x.Op, x.Loc
+}
+
+// Seq represents a Seq expression of the form X [ Y ]
+type Seq struct {
+	StartOp, EndOp   string
+	StartLoc, EndLoc Loc
+	X, Y             Node
+}
+
+// NodeInfo returns the start operator and the start location.
+func (s *Seq) NodeInfo() (value string, loc Loc) {
+	return s.StartOp, s.StartLoc
+}
+
+// Set represents a Seq expression of the form X { Y }
+type Set struct {
+	StartOp, EndOp   string
+	StartLoc, EndLoc Loc
+	X, Y             Node
+}
+
+// NodeInfo returns the start operator and the start location.
+func (s *Set) NodeInfo() (value string, loc Loc) {
+	return s.StartOp, s.StartLoc
 }
 
 // Number represents a numeric literal
