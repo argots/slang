@@ -86,7 +86,8 @@ type Ident struct {
 	Loc
 }
 
-// Ident returns the raw identifier string (including if has a quoted string)
+// NodeInfo returns the raw identifier string (including if has a
+// quoted string) and its location in the source code.
 func (i Ident) NodeInfo() (value string, loc Loc) {
 	return i.Val, i.Loc
 }

@@ -3,6 +3,7 @@ package ast_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/argots/slang/pkg/ast"
@@ -62,4 +63,32 @@ func TestJSON(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test, run(test))
 	}
+}
+
+func ExampleJSON() {
+	n, err := ast.ParseString("x + y")
+	if err != nil {
+		panic(err)
+	}
+	data, err := json.MarshalIndent(&ast.JSON{Node: n}, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
+
+	// Output:
+	// {
+	//   "type": "Expr",
+	//   "op": "+",
+	//   "nodes": [
+	//     {
+	//       "type": "Ident",
+	//       "val": "x"
+	//     },
+	//     {
+	//       "type": "Ident",
+	//       "val": "y"
+	//     }
+	//   ]
+	// }
 }
