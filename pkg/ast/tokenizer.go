@@ -2,7 +2,6 @@ package ast
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"unicode"
 )
@@ -149,7 +148,7 @@ func (t *tokenizer) newToken(kind tokenKind, start int, rs []rune) *token {
 }
 
 func (t *tokenizer) error(reason string, r rune) error {
-	return fmt.Errorf("%s %c", reason, r)
+	return &ParseError{reason + " " + string([]rune{r}), t.Location, t.offset}
 }
 
 func (t *tokenizer) isNextRuneEquals() bool {
