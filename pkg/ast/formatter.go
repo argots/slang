@@ -37,6 +37,9 @@ func (f *TextFormatter) Format(w io.Writer, n Node, options *FormatOptions) erro
 	case *Seq:
 		f.formatSetOrSeq(&ew, options, n.StartOp, n.EndOp, n.X, n.Y)
 		return ew.err
+	case *Paren:
+		f.formatSetOrSeq(&ew, options, n.StartOp, n.EndOp, n.X, n.Y)
+		return ew.err
 	default:
 		v, _ := n.NodeInfo()
 		_, err := w.Write([]byte(v))

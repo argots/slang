@@ -49,13 +49,13 @@ func TestParseAndFormat(t *testing.T) { //nolint: funlen
 		{"x + [23, 24]", "x + [23, 24]"},
 		{"{}"},
 		{"map{[1, 2]: 42}"},
+		{"(x): y"},
+		{"((x)): y", "(x): y"},
 	}
 
 	run := func(test []string) func(t *testing.T) {
 		return func(t *testing.T) {
-			s, lm := &ast.Sources{}, ast.NewLocMap()
-			s.AddStringSource("test", test[0])
-			n, err := ast.Parse(s.ReadSource("test"), "test", lm)
+			n, err := ast.ParseString(test[0])
 			if err != nil {
 				t.Fatal("parse", err)
 			}

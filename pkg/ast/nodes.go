@@ -21,6 +21,18 @@ func (x *Expr) NodeInfo() (value string, loc Loc) {
 	return x.Op, x.Loc
 }
 
+// Paren represents a parenthesized expression.
+type Paren struct {
+	StartOp, EndOp   string
+	StartLoc, EndLoc Loc
+	X, Y             Node
+}
+
+// NodeInfo returns the start operator and the start location.
+func (p *Paren) NodeInfo() (value string, loc Loc) {
+	return p.StartOp, p.StartLoc
+}
+
 // Seq represents a Seq expression of the form X [ Y ]
 type Seq struct {
 	StartOp, EndOp   string

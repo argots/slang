@@ -43,9 +43,10 @@ average"` is a valid identifier.
 | + - * /        | Standard arithmetic. Minus is also unary prefix. |
 | = != < > <= >= | Equality, inequality operators.                  |
 | & \|           | Logical operators. `not` is a function           |
-| ()             | Grouping.  Not used for functions                |
+| ()             | Grouping as well function-like                   |
 | [] {}          | Ordered sequences or Unordered sets              |
 | :              | Tuple operator                                   |
+| .              | Field/property access                            |
 | ,              | Comma separator for sequences and sets           |
 
 
@@ -57,8 +58,11 @@ their usage.  The context is outside the scope of the AST definition.
 Sequences and sets can have an identifier before them: `hello[ a, b,
 c]` or `hello{a, b, c}`.  When used in the context of data, this
 represents a named collection (with the name `hello`).  When used in
-the context of code, this represents a function call.  There is no
-explicit function call syntax (i.e using the typical `f(x)` form).
+the context of code, this represents a function call.
+
+Slang syntax also allows function-call like usage: `a.b(5, 2)`.  The
+meaning of this would depend on the context as well (and this might
+very well be disallowed for a pure data context).
 
 Tuples are a special composite type: `a:b` represents a pair.  `a:b:c`
 is allowed. The meaning of tuple is context dependent. Within
