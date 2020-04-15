@@ -75,3 +75,34 @@ func TestParseAndFormat(t *testing.T) { //nolint: funlen
 		t.Run(test[0], run(test))
 	}
 }
+
+func TestParseErrors(t *testing.T) { //nolint: funlen
+	tests := map[string]string{
+		"":      "unexpected terms count 0 at string:0",
+		"()":    "unexpected terms count 0 at string:0",
+		"  -":   "insufficient terms at string:2",
+		"1 ++2": "missing term at string:3",
+		"x ! 2": "unexpected character ! at string:2",
+		"x $ 2": "unexpected character $ at string:2",
+		"x (":   "unexpected EOF",
+		"x y":   "missing op at string:2",
+		"x (}":  "unexpected close at string:3",
+		"x }":   "unexpected close at string:2",
+	}
+
+	run := func(test string) func(t *testing.T) {
+		return func(t *testing.T) {
+			n, err := ast.ParseString(test)
+			if err == nil {
+				t.Error("parse", n)
+			}
+			if err.Error() != tests[test] {
+				t.Error("Unexpected", err)
+			}
+		}
+	}
+
+	for test := range tests {
+		t.Run(test, run(test))
+	}
+}

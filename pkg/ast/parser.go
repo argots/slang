@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"errors"
 	"fmt"
 	"io"
 )
@@ -43,7 +42,7 @@ func (p *parser) parse(end string, allowEmpty bool) (Node, Loc, error) {
 			case "(", "[", "{":
 				err = p.handleSetSeqOrParen(tok)
 			case ")", "]", "}":
-				err = errors.New("unexpected close")
+				err = p.error("unexpected close", tok.Loc)
 			default:
 				err = p.handleOp(tok)
 			}
@@ -62,28 +61,29 @@ func (p *parser) parse(end string, allowEmpty bool) (Node, Loc, error) {
 }
 
 func (p *parser) finish(l Loc, allowEmpty bool) (Node, Loc, error) {
-	if err := p.unwindOps(""); err != nil {
+	if err := p.unwindOps("", l); err != nil {
 		return nil, l, err
 	}
 	if allowEmpty && len(p.terms) == 0 {
 		return nil, l, nil
 	}
 	if len(p.terms) != 1 {
-		return nil, l, fmt.Errorf("unexpected terms count %v %v", p.terms, p.ops)
+		e := fmt.Sprintf("unexpected terms count %d", len(p.terms))
+		return nil, l, &ParseError{e, p.tokenizer.Location, 0}
 	}
 	return p.terms[0], l, nil
 }
 
 func (p *parser) handleOp(tok *token) error {
 	if !p.lastWasTerm && !isUnary(tok.Value) {
-		return errors.New("missing term")
+		return p.error("missing term", tok.Loc)
 	}
 
 	if !p.lastWasTerm {
 		p.terms = append(p.terms, nil)
 	}
 
-	if err := p.unwindOps(tok.Value); err != nil {
+	if err := p.unwindOps(tok.Value, tok.Loc); err != nil {
 		return err
 	}
 
@@ -100,7 +100,7 @@ func (p *parser) handleSetSeqOrParen(tok *token) error {
 	var l Loc
 	if p.lastWasTerm {
 		p.lastWasTerm = false
-		if err := p.unwindOps(tok.Value); err != nil {
+		if err := p.unwindOps(tok.Value, tok.Loc); err != nil {
 			return err
 		}
 		x = p.terms[len(p.terms)-1]
@@ -125,7 +125,7 @@ func (p *parser) handleSetSeqOrParen(tok *token) error {
 	}
 }
 
-func (p *parser) unwindOps(op string) error {
+func (p *parser) unwindOps(op string, loc Loc) error {
 	pri := priority(op)
 	isRightAssociative := isRightAssoc(op)
 	for l := len(p.ops) - 1; l >= 0 && priority(p.ops[l].Value) >= pri; l-- {
@@ -136,7 +136,7 @@ func (p *parser) unwindOps(op string) error {
 
 		p.ops = p.ops[:l]
 		if len(p.terms) <= 1 {
-			return errors.New("insufficient terms")
+			return p.error("insufficient terms", loc)
 		}
 		x, y := p.terms[len(p.terms)-2], p.terms[len(p.terms)-1]
 		p.terms = p.terms[:len(p.terms)-2]
@@ -147,7 +147,8 @@ func (p *parser) unwindOps(op string) error {
 
 func (p *parser) handleTerm(n Node) error {
 	if p.lastWasTerm {
-		return errors.New("missing op")
+		_, loc := n.NodeInfo()
+		return p.error("missing op", loc)
 	}
 	p.terms = append(p.terms, n)
 	p.lastWasTerm = true
@@ -177,4 +178,9 @@ func (p *parser) closeToken(s string) string {
 	default:
 		return "}"
 	}
+}
+
+func (p *parser) error(reason string, loc Loc) error {
+	source, start, _ := loc.Offset(p.tokenizer.LocMap)
+	return &ParseError{reason, source, int(start)}
 }
