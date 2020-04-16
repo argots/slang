@@ -1,5 +1,7 @@
 package eval
 
+import "github.com/argots/slang/pkg/ast"
+
 // type assertion
 var _ Value = &errorValue{}
 
@@ -25,5 +27,9 @@ func (e *errorValue) Value() Value {
 }
 
 func (e *errorValue) Get(v Valuable) Valuable {
+	return e
+}
+
+func (e *errorValue) Call(x, y ast.Node, s Scope) Valuable {
 	return e
 }

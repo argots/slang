@@ -12,6 +12,5 @@ func (f Fields) Get(receiver Value, field Valuable) Valuable {
 			return fn(receiver)
 		}
 	}
-	// TODO: use sys.error{message: no such field, field: field}
 	return NewError(NewString("no such field"))
 }

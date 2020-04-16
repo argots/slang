@@ -29,7 +29,7 @@ func (o operator) Value() Value {
 }
 
 func (o operator) Get(v Valuable) Valuable {
-	return NewError(NewString("unknown"))
+	return NewError(NewString("unknown field " + v.Value().Code()))
 }
 
 func (o operator) Call(x, y ast.Node, s Scope) Valuable {
@@ -50,5 +50,5 @@ func Call(v Valuable, x, y ast.Node, s Scope) Valuable {
 	if c, ok := val.(callable); ok {
 		return c.Call(x, y, s)
 	}
-	return NewError(NewString("unkonwn operator"))
+	return NewError(NewString("unknown operator " + val.Code()))
 }

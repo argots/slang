@@ -9,6 +9,10 @@ import (
 
 func TestEval(t *testing.T) {
 	tests := map[string]string{
+		"sys": `sys.set{"operators": sys.set{"dot": sys.operators.dot}}`,
+
+		"x": `sys.error{'undefined variable "x"'}`,
+
 		`"hello".length`:     `"5"`,
 		`"hello".("length")`: `"5"`,
 	}

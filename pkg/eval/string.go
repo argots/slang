@@ -1,26 +1,15 @@
 package eval
 
 import (
-	"log"
 	"strconv"
 	"strings"
 )
 
+var _ Value = strValue("")
+
 // NewString creates a string value
 func NewString(s string) Value {
-	ends := `"`
-	switch {
-	case !strings.Contains(s, `"`):
-		ends = `"`
-	case !strings.Contains(s, `'`):
-		ends = `'`
-	case !strings.Contains(s, "`"):
-		ends = "`"
-	default:
-		s = strings.ReplaceAll(s, `"`, `\"`)
-	}
-
-	return strValue(ends + s + ends)
+	return strValue(s)
 }
 
 type strValue string
@@ -30,7 +19,20 @@ func (s strValue) Type() string {
 }
 
 func (s strValue) Code() string {
-	return string(s)
+	sx := string(s)
+	ends := `"`
+	switch {
+	case !strings.Contains(sx, `"`):
+		ends = `"`
+	case !strings.Contains(sx, `'`):
+		ends = `'`
+	case !strings.Contains(sx, "`"):
+		ends = "`"
+	default:
+		sx = strings.ReplaceAll(sx, `"`, `\"`)
+	}
+
+	return ends + sx + ends
 }
 
 func (s strValue) Get(v Valuable) Valuable {
@@ -43,11 +45,8 @@ func (s strValue) Value() Value {
 
 func strFields() Fields {
 	return Fields{
-		`"length"`: func(receiver Value) Valuable {
-			log.Println("calculating length", receiver.Code())
-			// TODO: get the raw string
-			l := len(string(receiver.(strValue))) - 2
-			return strValue(`"` + strconv.Itoa(l) + `"`)
+		"length": func(receiver Value) Valuable {
+			return strValue(strconv.Itoa(len(string(receiver.(strValue)))))
 		},
 	}
 }

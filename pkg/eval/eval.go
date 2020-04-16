@@ -23,7 +23,7 @@ type Valuable interface {
 func Node(n ast.Node, s Scope) Valuable {
 	switch n := n.(type) {
 	case ast.Quote:
-		return strValue(n.Val)
+		return strValue(decodeString(n.Val))
 	case ast.Number:
 		return NewError(NewString("NYI"))
 	case ast.Ident:
@@ -42,4 +42,16 @@ func Node(n ast.Node, s Scope) Valuable {
 	}
 
 	return NewError(NewString("nil"))
+}
+
+func decodeString(s string) string {
+	rs := []rune{}
+	skip := false
+	for _, r := range s[1 : len(s)-1] {
+		if skip || r != '\\' {
+			rs = append(rs, r)
+		}
+		skip = !skip && r == '\\'
+	}
+	return string(rs)
 }

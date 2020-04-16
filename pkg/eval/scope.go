@@ -30,7 +30,7 @@ func (s *scope) Get(key Value) Valuable {
 	if s.parent != nil {
 		return s.parent.Get(key)
 	}
-	return NewError(NewString("no such key"))
+	return NewError(NewString("undefined variable " + key.Code()))
 }
 
 func (s *scope) Add(key Value, value Valuable) {
@@ -38,6 +38,5 @@ func (s *scope) Add(key Value, value Valuable) {
 }
 
 func (s *scope) equals(key1, key2 Value) bool {
-	// TODO: use a more efficient equals implementation
 	return key1.Type() == key2.Type() && key1.Code() == key2.Code()
 }
