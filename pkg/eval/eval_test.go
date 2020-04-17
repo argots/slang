@@ -7,14 +7,18 @@ import (
 	"github.com/argots/slang/pkg/eval"
 )
 
+//nolint: lll
 func TestEval(t *testing.T) {
 	tests := map[string]string{
-		"sys": `sys.set{"operators": sys.set{"dot": sys.operators.dot}}`,
-
-		"x": `sys.error{'undefined variable "x"'}`,
-
-		`"hello".length`:     `"5"`,
-		`"hello".("length")`: `"5"`,
+		"x":                  `sys.error{'undefined variable "x"'}`,
+		"{x: 5}":             `{"x": 5}`,
+		"{5: 22}":            `{5: 22}`,
+		`5 + 5`:              `10`,
+		`10 / 2`:             `5`,
+		"6/4":                `(3/2)`,
+		"(-5)":               `-5`,
+		`"hello".length`:     `5`,
+		`"hello".("length")`: `5`,
 	}
 
 	for test, want := range tests {

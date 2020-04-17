@@ -9,17 +9,18 @@ type Set struct {
 
 // Type returns the type of the set
 func (s *Set) Type() string {
-	return "sys.set{}"
+	return "sys.operators.set{}"
 }
 
 // Code returns the code for a set
 func (s *Set) Code() string {
-	result := "sys.set{"
+	result := "{"
 	first := true
 	for k, v := range s.items {
 		if !first {
 			result += ", "
 		}
+		first = false
 		result += k + ": " + v.Value().Code()
 	}
 	return result + "}"
