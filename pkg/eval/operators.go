@@ -44,6 +44,32 @@ func dot(x, y ast.Node, s Scope) Valuable {
 	return xval.Get(Node(y, s))
 }
 
+func arithmetic(op string) func(x, y ast.Node, s Scope) Valuable {
+	return func(x, y ast.Node, s Scope) Valuable {
+		xval, yval := Node(x, s).Value(), Node(y, s).Value()
+		if x == nil {
+			xval = NewNumber(0)
+		}
+		xnum, xok := xval.(numValue)
+		ynum, yok := yval.(numValue)
+		if !xok || !yok {
+			return NewError(NewString("not a number: " + yval.Code()))
+		}
+		return xnum.Arithmetic(op, ynum)
+	}
+}
+
+func set(x, y ast.Node, s Scope) Valuable {
+	if x != nil {
+		return Call(Node(x, s).Value().Get(NewString("{}")), x, y, s)
+	}
+	items := map[string]Valuable{}
+	Args(y, s, func(key Value, v ast.Node) {
+		items[key.Code()] = Node(v, s)
+	})
+	return &Set{items}
+}
+
 // Call implements a operator (including (), [], and {})
 func Call(v Valuable, x, y ast.Node, s Scope) Valuable {
 	val := v.Value()

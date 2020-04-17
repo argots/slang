@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -46,7 +45,8 @@ func (s strValue) Value() Value {
 func strFields() Fields {
 	return Fields{
 		"length": func(receiver Value) Valuable {
-			return strValue(strconv.Itoa(len(string(receiver.(strValue)))))
+			l := len(string(receiver.(strValue)))
+			return NewNumber(float64(l))
 		},
 	}
 }

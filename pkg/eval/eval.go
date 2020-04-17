@@ -2,6 +2,8 @@
 package eval
 
 import (
+	"strconv"
+
 	"github.com/argots/slang/pkg/ast"
 )
 
@@ -25,7 +27,11 @@ func Node(n ast.Node, s Scope) Valuable {
 	case ast.Quote:
 		return strValue(decodeString(n.Val))
 	case ast.Number:
-		return NewError(NewString("NYI"))
+		f, err := strconv.ParseFloat(n.Val, 64)
+		if err != nil {
+			return NewError(NewString(err.Error()))
+		}
+		return NewNumber(f)
 	case ast.Ident:
 		return s.Get(NewString(n.Val)).Value()
 	case *ast.Expr:
