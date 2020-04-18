@@ -1,5 +1,7 @@
 package eval
 
+import "sort"
+
 var _ Value = &Set{}
 
 // Set implememnts a generic set type
@@ -14,9 +16,16 @@ func (s *Set) Type() string {
 
 // Code returns the code for a set
 func (s *Set) Code() string {
+	keys := []string{}
+	for key := range s.items {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
 	result := "{"
 	first := true
-	for k, v := range s.items {
+	for _, k := range keys {
+		v := s.items[k]
 		if !first {
 			result += ", "
 		}
