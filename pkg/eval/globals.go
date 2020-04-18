@@ -10,6 +10,8 @@ func Globals() Scope {
 	s.Add(NewString("/"), operator{"sys.operators.div", arithmetic("/")})
 
 	s.Add(NewString("{}"), operator{"sys.operators.set", set})
+	s.Add(NewString("()"), operator{"sys.operators.call", call})
+	s.Add(NewString("[]"), operator{"sys.operators.seq", seq})
 	s.Add(NewString("sys"), sys())
 	return s
 }
@@ -33,7 +35,9 @@ func operators() Value {
 		NewString("mul").Code(): operator{"sys.operators.mul", arithmetic("*")},
 		NewString("div").Code(): operator{"sys.operators.div", arithmetic("/")},
 
-		NewString("set").Code(): operator{"sys.operators.set", set},
+		NewString("set").Code():  operator{"sys.operators.set", set},
+		NewString("call").Code(): operator{"sys.operators.call", call},
+		NewString("seq").Code():  operator{"sys.operators.seq", seq},
 	}
 	return &Set{items: items}
 }
