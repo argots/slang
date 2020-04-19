@@ -38,14 +38,7 @@ func (p *parser) parse(end string, allowEmpty bool) (Node, Loc, error) {
 		case tok.Kind == operatorToken && tok.Value == end:
 			return p.finish(tok.Loc, allowEmpty)
 		case tok.Kind == operatorToken:
-			switch tok.Value {
-			case "(", "[", "{":
-				err = p.handleSetSeqOrParen(tok)
-			case ")", "]", "}":
-				err = p.error("unexpected close", tok.Loc)
-			default:
-				err = p.handleOp(tok)
-			}
+			err = p.handleOp(tok)
 		case tok.Kind == numberToken:
 			err = p.handleTerm(Number{tok.Value, tok.Loc})
 		case tok.Kind == quoteToken:
@@ -75,6 +68,13 @@ func (p *parser) finish(l Loc, allowEmpty bool) (Node, Loc, error) {
 }
 
 func (p *parser) handleOp(tok *token) error {
+	switch tok.Value {
+	case "(", "[", "{":
+		return p.handleSetSeqOrParen(tok)
+	case ")", "]", "}":
+		return p.error("unexpected close", tok.Loc)
+	}
+
 	if !p.lastWasTerm && !isUnary(tok.Value) {
 		return p.error("missing term", tok.Loc)
 	}

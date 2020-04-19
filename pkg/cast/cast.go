@@ -1,4 +1,4 @@
-// cast provides methods to create and work with ASTs
+// Package cast provides methods to create and build AST nodes.
 package cast
 
 import (
