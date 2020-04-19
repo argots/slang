@@ -1,8 +1,8 @@
 # Slang
 
-![Test](https://github.com/argots/slang/workflows/Test/badge.svg)
-![Lint](https://github.com/argots/slang/workflows/Lint/badge.svg)
-
+[![Test](https://github.com/argots/slang/workflows/Test/badge.svg)](https://github.com/argots/slang/actions?query=workflow%3ATest)
+[![Lint](https://github.com/argots/slang/workflows/Lint/badge.svg)](https://github.com/argots/slang/actions?query=workflow%3ALint)
+[![Go Report Card](https://goreportcard.com/badge/github.com/argots/slang)](https://goreportcard.com/report/github.com/argots/slang)
 Slang is a simple declarative meta-programming language for data and code.
 
 ## Goals
