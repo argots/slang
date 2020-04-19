@@ -13,6 +13,8 @@ type Args struct {
 	SeqKey    func(name string, args, val ast.Node) bool
 }
 
+// Visit traverses the node and calls the functions provided in the
+// Args structure.
 func (a Args) Visit(n ast.Node) {
 	loop := true
 	for n != nil && loop {

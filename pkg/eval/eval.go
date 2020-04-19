@@ -1,4 +1,4 @@
-// eval implements a simple interpreter for slang
+// Package eval implements a simple interpreter for slang.
 package eval
 
 import (
