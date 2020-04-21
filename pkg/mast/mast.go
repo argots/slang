@@ -76,7 +76,7 @@ func (m Matcher) HasKeyValue(key, value Matcher) Matcher {
 	return m.And(HasKeyValue(key, value))
 }
 
-// Captuure captures the node into the pointer to it if the condition
+// Capture captures the node into the pointer to it if the condition
 // is met.
 func (m Matcher) Capture(n *ast.Node) Matcher {
 	return m.And(Capture(n))
@@ -271,7 +271,7 @@ func HasKeyValue(key, value Matcher) Matcher {
 	return HasItem(KeyValue(key, value))
 }
 
-// Captuure captures the node.
+// Capture captures the node.
 func Capture(n *ast.Node) Matcher {
 	return func(np *ast.Node, tx *Tx) bool {
 		*n = *np
