@@ -17,25 +17,43 @@ fixed syntax instead of requiring additional syntax.
 - Ability to represent patches of the syntax within the syntax itself
 (meta programming).
 
-## Language details
+## Packages
 
-Slang is an expression-based language: there are no statements.
+Slang comes with a default set of packages to help manipulate slang
+code.  In particular, the AST package has JSON helper that converts
+ASTs to JSON and back without loss.
+
+Slang also comes with an AST builder that allows creating ASTs easily
+and an AST pattern matcher/replacer.  Between these, slang should
+allow programmatically working with code a lot easier.
+
+|--------------------------|---------------------------------------|
+| [ast](https://github.com/argots/slang/tree/master/pkg/ast) | implements a parser and formatter |
+| [cast](https://github.com/argots/slang/tree/master/pkg/cast) | create and build AST nodes }
+| [mast](https://github.com/argots/slang/tree/master/pkg/mast) | pattern match AST nodes }
+| [eval](https://github.com/argots/slang/tree/master/pkg/eval) | interpreter |
+
+
+## Slang AST
+
+The slang AST parser is a very permissive expression parser which
+produces an AST node.  In particular, the parser allows colon and
+commas in all contexts even if they don't actively make sense.
 
 ### Literals
 
 The basic literals in the language are strings and numbers.  Strings
 can use single quotes, double quotes, back quotes or any Unicode quote
 character (though the closing character must match the opening)  and
-can all be multi-line. There is no escape sequence available but these
-can be provided with functions.
+can all be multi-line.  Unlike most languages, strings have only one
+escape sequence: a slash followed by a rune is treated as the rune. 
 
 ### Identifiers
 
 Identifiers are letters (including Unicode) followed by any letter +
-number combinations. Identifiers can include quoted strings if no
-space separates the identifier and the quoted string.  This allows
-arbitrary characters in identifiers. For example, `x"The vector's
-average"` is a valid identifier.
+number combinations. Strings that immediately follow an identifer
+(with no space in between) are considered part of the identifier
+thereby allowing any character as part of the identifier.
 
 ### Operators
 
