@@ -15,7 +15,7 @@ func TestEval(t *testing.T) {
 		"{5: 22}":                       `{5: 22}`,
 		`5 + 5`:                         `10`,
 		`10 / 2`:                        `5`,
-		"6/4":                           `(3/2)`,
+		"6/4":                           `3 / 2`,
 		"(-5)":                          `-5`,
 		`"hello".length`:                `5`,
 		`"hello".("length")`:            `5`,
@@ -37,5 +37,5 @@ func evalString(s string) string {
 	if err != nil {
 		return err.Error()
 	}
-	return eval.Node(n, eval.Globals()).Value().Code()
+	return eval.Node(n, eval.Globals()).Value().Code().String()
 }

@@ -1,6 +1,11 @@
 package eval
 
-import "github.com/argots/slang/pkg/ast"
+import (
+	"strings"
+
+	"github.com/argots/slang/pkg/ast"
+	"github.com/argots/slang/pkg/cast"
+)
 
 // type assertion
 var _ Value = operator{}
@@ -18,8 +23,13 @@ func (o operator) Type() string {
 	return "operator"
 }
 
-func (o operator) Code() string {
-	return o.code
+func (o operator) Code() Code {
+	fields := strings.Split(o.code, ".")
+	result := cast.ToNode(fields[0])
+	for _, f := range fields[1:] {
+		result = result.Dot(f)
+	}
+	return Code{result.Node}
 }
 
 func (o operator) Value() Value {
@@ -27,7 +37,7 @@ func (o operator) Value() Value {
 }
 
 func (o operator) Get(v Valuable) Valuable {
-	return NewError(NewString("unknown field " + v.Value().Code()))
+	return NewError(NewString("unknown field " + toString(v)))
 }
 
 func (o operator) Call(x, y ast.Node, s Scope) Valuable {
@@ -51,7 +61,7 @@ func arithmetic(op string) func(x, y ast.Node, s Scope) Valuable {
 		xnum, xok := xval.(numValue)
 		ynum, yok := yval.(numValue)
 		if !xok || !yok {
-			return NewError(NewString("not a number: " + yval.Code()))
+			return NewError(NewString("not a number: " + toString(yval)))
 		}
 		return xnum.Arithmetic(op, ynum)
 	}
@@ -73,21 +83,21 @@ func set(x, y ast.Node, s Scope) Valuable {
 	if x != nil {
 		return Call(Node(x, s).Value().Get(NewString("{}")), x, y, s)
 	}
-	items := map[string]Valuable{}
+	items := &Set{items: map[string]setItem{}}
 	calls := map[string]*Set{}
 
 	var err Valuable
 	args := Args{
 		NoKey: func(val ast.Node) bool {
-			items[NewString("").Code()] = Node(val, s)
+			items.Add(NewString(""), Node(val, s))
 			return false
 		},
 		StringKey: func(key string, val ast.Node) bool {
-			items[NewString(key).Code()] = Node(val, s)
+			items.Add(NewString(key), Node(val, s))
 			return false
 		},
 		NodeKey: func(key, val ast.Node) bool {
-			items[Node(key, s).Value().Code()] = Node(val, s)
+			items.Add(Node(key, s), Node(val, s))
 			return false
 		},
 		ParenKey: func(name string, args, val ast.Node) bool {
@@ -108,14 +118,14 @@ func set(x, y ast.Node, s Scope) Valuable {
 		return err
 	}
 	for k, v := range calls {
-		items[NewString(k).Code()] = v
+		items.Add(NewString(k), v)
 	}
-	return &Set{items}
+	return items
 }
 
 func defineClosure(calls map[string]*Set, name, op string, args, val ast.Node, s Scope) Valuable {
 	if _, ok := calls[name]; !ok {
-		calls[name] = &Set{items: map[string]Valuable{}}
+		calls[name] = &Set{items: map[string]setItem{}}
 	}
 	names := []string{}
 	for args != nil {
@@ -131,14 +141,16 @@ func defineClosure(calls map[string]*Set, name, op string, args, val ast.Node, s
 		}
 	}
 
-	opcode := NewString(op).Code()
-	calls[name].items[opcode] = NewClosure(op, names, func(args map[Value]Value) Valuable {
-		inner := NewScope(s)
-		for key, val := range args {
-			inner.Add(key, val)
-		}
-		return Node(val, inner)
-	})
+	calls[name].Add(
+		NewString(op),
+		NewClosure(op, names, func(args map[Value]Value) Valuable {
+			inner := NewScope(s)
+			for key, val := range args {
+				inner.Add(key, val)
+			}
+			return Node(val, inner)
+		}),
+	)
 	return nil
 }
 
@@ -148,5 +160,5 @@ func Call(v Valuable, x, y ast.Node, s Scope) Valuable {
 	if c, ok := val.(callable); ok {
 		return c.Call(x, y, s)
 	}
-	return NewError(NewString("unknown operator " + val.Code()))
+	return NewError(NewString("unknown operator " + toString(val)))
 }

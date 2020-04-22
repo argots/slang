@@ -27,7 +27,8 @@ Slang also comes with an AST builder that allows creating ASTs easily
 and an AST pattern matcher/replacer.  Between these, slang should
 allow programmatically working with code a lot easier.
 
-|--------------------------|---------------------------------------|
+| Package | Descripton |
+| ------- | ---------- |
 | [ast](https://github.com/argots/slang/tree/master/pkg/ast) | implements a parser and formatter |
 | [cast](https://github.com/argots/slang/tree/master/pkg/cast) | create and build AST nodes }
 | [mast](https://github.com/argots/slang/tree/master/pkg/mast) | pattern match AST nodes }

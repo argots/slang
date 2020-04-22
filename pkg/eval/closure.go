@@ -1,6 +1,9 @@
 package eval
 
-import "github.com/argots/slang/pkg/ast"
+import (
+	"github.com/argots/slang/pkg/ast"
+	"github.com/argots/slang/pkg/cast"
+)
 
 // NewClosure takes an arg definition and makes it callable.
 //
@@ -8,7 +11,7 @@ import "github.com/argots/slang/pkg/ast"
 // form a local scope. This is passed to the provided fn for actual
 // execution.
 func NewClosure(op string, args []string, fn func(args map[Value]Value) Valuable) Valuable {
-	c := &closure{args: args, fn: fn}
+	c := &closure{op: op, args: args, fn: fn}
 	c.params = c.seqParams
 	if op == "{}" {
 		c.params = c.setParams
@@ -17,17 +20,33 @@ func NewClosure(op string, args []string, fn func(args map[Value]Value) Valuable
 }
 
 type closure struct {
+	op     string
 	args   []string
 	params func(x, y ast.Node, s Scope) (map[Value]Value, Valuable)
 	fn     func(args map[Value]Value) Valuable
+	fnCode Code
 }
 
 func (c *closure) Type() string {
 	return "sys.closure"
 }
 
-func (c *closure) Code() string {
-	panic("NYI")
+func (c *closure) Code() Code {
+	code := cast.ToNode("closure")
+	args := []interface{}{}
+	for _, arg := range c.args {
+		args = append(args, cast.ToNode(arg))
+	}
+	var key cast.Node
+	switch c.op {
+	case "()":
+		key = code.Call(args...)
+	case "{}":
+		key = code.Set(args...)
+	case "[]":
+		key = code.Seq(args...)
+	}
+	return Code{cast.Set(nil, cast.Pair(key, c.fnCode)).Dot("closure").Node}
 }
 
 func (c *closure) Value() Value {
@@ -35,7 +54,7 @@ func (c *closure) Value() Value {
 }
 
 func (c *closure) Get(key Valuable) Valuable {
-	return NewError(NewString("no such field " + key.Value().Code()))
+	return NewError(NewString("no such field " + toString(key)))
 }
 
 func (c *closure) seqParams(x, y ast.Node, s Scope) (map[Value]Value, Valuable) {
@@ -83,7 +102,7 @@ func (c *closure) setParams(x, y ast.Node, s Scope) (map[Value]Value, Valuable) 
 
 	names := map[string]bool{}
 	for _, name := range c.args {
-		names[NewString(name).Code()] = true
+		names[toString(NewString(name))] = true
 	}
 	args := Args{
 		NoKey: func(val ast.Node) bool {
@@ -91,7 +110,7 @@ func (c *closure) setParams(x, y ast.Node, s Scope) (map[Value]Value, Valuable) 
 			return true
 		},
 		StringKey: func(key string, val ast.Node) bool {
-			if code := NewString(key).Code(); !names[code] {
+			if code := toString(NewString(key)); !names[code] {
 				err = NewError(NewString("invalid arg " + code))
 				return true
 			}
@@ -100,7 +119,7 @@ func (c *closure) setParams(x, y ast.Node, s Scope) (map[Value]Value, Valuable) 
 		},
 		NodeKey: func(key, val ast.Node) bool {
 			keyval := Node(key, s).Value()
-			if code := keyval.Code(); !names[code] {
+			if code := toString(keyval); !names[code] {
 				err = NewError(NewString("invalid arg " + code))
 				return true
 			}

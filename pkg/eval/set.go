@@ -1,12 +1,21 @@
 package eval
 
-import "sort"
+import "github.com/argots/slang/pkg/cast"
 
 var _ Value = &Set{}
 
+type setItem struct {
+	Key, Value Valuable
+}
+
 // Set implememnts a generic set type
 type Set struct {
-	items map[string]Valuable
+	// items has toString(Key) as the actual key
+	items map[string]setItem
+}
+
+func (s *Set) Add(key, value Valuable) {
+	s.items[toString(key)] = setItem{key, value}
 }
 
 // Type returns the type of the set
@@ -15,24 +24,12 @@ func (s *Set) Type() string {
 }
 
 // Code returns the code for a set
-func (s *Set) Code() string {
-	keys := []string{}
-	for key := range s.items {
-		keys = append(keys, key)
+func (s *Set) Code() Code {
+	args := []interface{}{}
+	for _, item := range s.items {
+		args = append(args, cast.Pair(item.Key.Value().Code(), item.Value.Value().Code()))
 	}
-	sort.Strings(keys)
-
-	result := "{"
-	first := true
-	for _, k := range keys {
-		v := s.items[k]
-		if !first {
-			result += ", "
-		}
-		first = false
-		result += k + ": " + v.Value().Code()
-	}
-	return result + "}"
+	return Code{cast.Set(nil, args...).Node}
 }
 
 // Value returns the set itself
@@ -42,9 +39,9 @@ func (s *Set) Value() Value {
 
 // Get returns the value for a key
 func (s *Set) Get(key Valuable) Valuable {
-	code := key.Value().Code()
+	code := toString(key)
 	if v, ok := s.items[code]; ok {
-		return v
+		return v.Value
 	}
 	return NewError(NewString("not found: " + code))
 }
