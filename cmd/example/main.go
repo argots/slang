@@ -38,5 +38,5 @@ func evalString(s string) string {
 	if err != nil {
 		return err.Error()
 	}
-	return eval.Node(n, eval.Globals()).Value().Code()
+	return eval.Node(n, eval.Globals()).Value().Code().String()
 }

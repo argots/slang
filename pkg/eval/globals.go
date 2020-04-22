@@ -17,27 +17,21 @@ func Globals() Scope {
 }
 
 func sys() Value {
-	ops := NewString("operators").Code()
-	items := map[string]Valuable{
-		ops: operators(),
-		// number
-		// string
-		// error
-	}
-	return &Set{items: items}
+	result := &Set{items: map[string]setItem{}}
+	result.Add(NewString("operators"), operators())
+	return result
 }
 
 func operators() Value {
-	items := map[string]Valuable{
-		NewString("dot").Code(): operator{"sys.operators.dot", dot},
-		NewString("add").Code(): operator{"sys.operators.add", arithmetic("+")},
-		NewString("sub").Code(): operator{"sys.operators.sub", arithmetic("-")},
-		NewString("mul").Code(): operator{"sys.operators.mul", arithmetic("*")},
-		NewString("div").Code(): operator{"sys.operators.div", arithmetic("/")},
+	ops := &Set{items: map[string]setItem{}}
+	ops.Add(NewString("dot"), operator{"sys.operators.dot", dot})
+	ops.Add(NewString("add"), operator{"sys.operators.add", arithmetic("+")})
+	ops.Add(NewString("sub"), operator{"sys.operators.sub", arithmetic("-")})
+	ops.Add(NewString("mul"), operator{"sys.operators.mul", arithmetic("*")})
+	ops.Add(NewString("div"), operator{"sys.operators.div", arithmetic("/")})
 
-		NewString("set").Code():  operator{"sys.operators.set", set},
-		NewString("call").Code(): operator{"sys.operators.call", call},
-		NewString("seq").Code():  operator{"sys.operators.seq", seq},
-	}
-	return &Set{items: items}
+	ops.Add(NewString("set"), operator{"sys.operators.set", set})
+	ops.Add(NewString("call"), operator{"sys.operators.call", call})
+	ops.Add(NewString("seq"), operator{"sys.operators.seq", seq})
+	return ops
 }

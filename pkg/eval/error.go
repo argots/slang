@@ -1,6 +1,9 @@
 package eval
 
-import "github.com/argots/slang/pkg/ast"
+import (
+	"github.com/argots/slang/pkg/ast"
+	"github.com/argots/slang/pkg/cast"
+)
 
 // type assertion
 var _ Value = &errorValue{}
@@ -18,8 +21,8 @@ func (e *errorValue) Type() string {
 	return "sys.error{" + e.v.Value().Type() + "}"
 }
 
-func (e *errorValue) Code() string {
-	return `sys.error{` + e.v.Value().Code() + "}"
+func (e *errorValue) Code() Code {
+	return Code{cast.ToNode("sys").Dot("error").Set(e.v.Value().Code()).Node}
 }
 
 func (e *errorValue) Value() Value {

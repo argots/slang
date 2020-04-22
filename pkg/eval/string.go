@@ -1,7 +1,7 @@
 package eval
 
 import (
-	"strings"
+	"github.com/argots/slang/pkg/cast"
 )
 
 var _ Value = strValue("")
@@ -17,21 +17,8 @@ func (s strValue) Type() string {
 	return "sys.string"
 }
 
-func (s strValue) Code() string {
-	sx := string(s)
-	ends := `"`
-	switch {
-	case !strings.Contains(sx, `"`):
-		ends = `"`
-	case !strings.Contains(sx, `'`):
-		ends = `'`
-	case !strings.Contains(sx, "`"):
-		ends = "`"
-	default:
-		sx = strings.ReplaceAll(sx, `"`, `\"`)
-	}
-
-	return ends + sx + ends
+func (s strValue) Code() Code {
+	return Code{cast.Quote(string(s)).Node}
 }
 
 func (s strValue) Get(v Valuable) Valuable {

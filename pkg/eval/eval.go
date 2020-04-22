@@ -10,7 +10,7 @@ import (
 // Value represents a value.  Most cases, Valuable is a better
 // interface to use.
 type Value interface {
-	Code() string
+	Code() Code
 	Type() string
 	Get(v Valuable) Valuable
 	Valuable
@@ -60,4 +60,8 @@ func decodeString(s string) string {
 		skip = !skip && r == '\\'
 	}
 	return string(rs)
+}
+
+func toString(v Valuable) string {
+	return v.Value().Code().String()
 }

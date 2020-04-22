@@ -1,6 +1,11 @@
 package eval
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/argots/slang/pkg/ast"
+	"github.com/argots/slang/pkg/cast"
+)
 
 var _ Value = numValue{}
 
@@ -19,12 +24,13 @@ func (n numValue) Type() string {
 	return "sys.number"
 }
 
-func (n numValue) Code() string {
+func (n numValue) Code() Code {
 	if n.IsInt() {
-		return n.RatString()
+		return Code{ast.Number{Val: n.RatString()}}
 	}
 
-	return "(" + n.RatString() + ")"
+	num, denom := n.Num().String(), n.Denom().String()
+	return Code{cast.Expr("/", ast.Number{Val: num}, ast.Number{Val: denom}).Node}
 }
 
 func (n numValue) Value() Value {
@@ -32,7 +38,7 @@ func (n numValue) Value() Value {
 }
 
 func (n numValue) Get(v Valuable) Valuable {
-	return NewError(NewString("no such field " + v.Value().Code()))
+	return NewError(NewString("no such field " + toString(v)))
 }
 
 func (n numValue) Arithmetic(op string, other numValue) Valuable {
