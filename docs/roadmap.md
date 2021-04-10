@@ -16,6 +16,7 @@
 16. Update rich text viewer => rich text editor using the streaming data protocol.
 17. Integrate protocol ladders and graph generator etc into editor to support natural edit mode.
 18. Update filter/group-by etc to use streaming edit over custom UI
+19. Integrate editor into configuration service (editing configuration).
 
 
 # TBD 
